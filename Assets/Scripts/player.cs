@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class player : MonoBehaviour
 {
@@ -29,17 +30,20 @@ public class player : MonoBehaviour
     public GameObject headphone;
     public GameObject cap;
     public FixedJoystick fixedJoystick;
-    private int score=0;
+    private int score = 0;
     public TextMeshProUGUI score_text;
     public GameObject cake;
     public AudioSource audioSource_birthdaysong;
     public AudioSource audioSource_bgm;
-    private bool is_played_birthdaysong=false;
+    private bool is_played_birthdaysong = false;
     public Image overlay;
     public GameObject birthday_card;
     public AudioSource audioSource_jump;
     public AudioSource audioSource_item;
     public ParticleSystem shine_effect;
+
+    private bool isGameStarted = false;
+    public GameObject game_start_text;
 
     void Start()
     {
@@ -48,13 +52,29 @@ public class player : MonoBehaviour
 
         headphone.SetActive(false);
         cap.SetActive(false);
-        score_text.text=score.ToString();
+        score_text.text = score.ToString();
         birthday_card.SetActive(false);
     }
 
     void Update()
     {
-        float distance=Vector3.Distance(transform.position,cake.transform.position);
+        if (!isGameStarted)
+        {
+            if (detect_start_tap())
+            {
+                isGameStarted = true;
+                game_start_text.SetActive(false);
+
+                if (audioSource_bgm != null && !audioSource_bgm.isPlaying)
+                {
+                    audioSource_bgm.Play();
+                }
+            }
+
+            return;
+        }
+
+        float distance = Vector3.Distance(transform.position, cake.transform.position);
 
         if (distance < 2)
         {
@@ -70,6 +90,7 @@ public class player : MonoBehaviour
 
             return;
         }
+
         bool right = Input.GetKey(KeyCode.RightArrow);
         bool left = Input.GetKey(KeyCode.LeftArrow);
 
@@ -124,8 +145,39 @@ public class player : MonoBehaviour
         }
     }
 
+    private bool detect_start_tap()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public void jump()
     {
+        if (!isGameStarted) return;
         if (jumpCount >= 2) return;
 
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -215,11 +267,10 @@ public class player : MonoBehaviour
         {
             respawn();
         }
-
-        
     }
 
-    private void OnTriggerEnter2D(Collider2D other) {
+    private void OnTriggerEnter2D(Collider2D other)
+    {
         if (other.CompareTag("strawberry"))
         {
             score++;
