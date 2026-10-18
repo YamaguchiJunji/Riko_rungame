@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class player : MonoBehaviour
@@ -24,16 +25,34 @@ public class player : MonoBehaviour
     private float landingSquashTime = 0.03f;
     private float landingReturnTime = 0.05f;
 
+    public GameObject headphone;
+    public GameObject cap;
+    public FixedJoystick fixedJoystick;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
+
+        headphone.SetActive(false);
+        cap.SetActive(false);
     }
 
     void Update()
     {
         bool right = Input.GetKey(KeyCode.RightArrow);
         bool left = Input.GetKey(KeyCode.LeftArrow);
+
+        float joystickHorizontal = fixedJoystick != null ? fixedJoystick.Horizontal : 0f;
+
+        if (joystickHorizontal > 0.01f)
+        {
+            right = true;
+        }
+        else if (joystickHorizontal < -0.01f)
+        {
+            left = true;
+        }
 
         float acceleration = speed / accelerationTime;
 
@@ -68,9 +87,14 @@ public class player : MonoBehaviour
         {
             jump();
         }
+
+        if (transform.position.y < -10)
+        {
+            respawn();
+        }
     }
 
-    private void jump()
+    public void jump()
     {
         if (jumpCount >= 2) return;
 
@@ -141,5 +165,28 @@ public class player : MonoBehaviour
                 scaleCoroutine = StartCoroutine(landing_scale_animation());
             }
         }
+
+        if (collision.gameObject.CompareTag("headphone"))
+        {
+            headphone.SetActive(true);
+            Destroy(collision.gameObject);
+        }
+
+        if (collision.gameObject.CompareTag("cap"))
+        {
+            cap.SetActive(true);
+            Destroy(collision.gameObject);
+        }
+
+        if (collision.gameObject.CompareTag("spike"))
+        {
+            respawn();
+        }
+    }
+
+    private void respawn()
+    {
+        float x = transform.position.x;
+        transform.position = new Vector3(transform.position.x - 10, -1, transform.position.z);
     }
 }
