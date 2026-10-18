@@ -139,6 +139,11 @@ public class player : MonoBehaviour
             jump();
         }
 
+        if (detect_jump_tap())
+        {
+            jump();
+        }
+
         if (transform.position.y < -10)
         {
             respawn();
@@ -165,6 +170,44 @@ public class player : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool detect_jump_tap()
+    {
+        if (fixedJoystick == null) return false;
+
+        RectTransform joystickRect = fixedJoystick.GetComponent<RectTransform>();
+
+        if (Input.touchCount > 0)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
+
+                if (touch.phase != TouchPhase.Began) continue;
+
+                if (RectTransformUtility.RectangleContainsScreenPoint(joystickRect, touch.position))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (RectTransformUtility.RectangleContainsScreenPoint(joystickRect, Input.mousePosition))
             {
                 return false;
             }
