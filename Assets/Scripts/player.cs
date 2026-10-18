@@ -1,6 +1,7 @@
 using System.Collections;
-using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class player : MonoBehaviour
 {
@@ -28,6 +29,17 @@ public class player : MonoBehaviour
     public GameObject headphone;
     public GameObject cap;
     public FixedJoystick fixedJoystick;
+    private int score=0;
+    public TextMeshProUGUI score_text;
+    public GameObject cake;
+    public AudioSource audioSource_birthdaysong;
+    public AudioSource audioSource_bgm;
+    private bool is_played_birthdaysong=false;
+    public Image overlay;
+    public GameObject birthday_card;
+    public AudioSource audioSource_jump;
+    public AudioSource audioSource_item;
+    public ParticleSystem shine_effect;
 
     void Start()
     {
@@ -36,10 +48,28 @@ public class player : MonoBehaviour
 
         headphone.SetActive(false);
         cap.SetActive(false);
+        score_text.text=score.ToString();
+        birthday_card.SetActive(false);
     }
 
     void Update()
     {
+        float distance=Vector3.Distance(transform.position,cake.transform.position);
+
+        if (distance < 2)
+        {
+            if (!is_played_birthdaysong)
+            {
+                audioSource_bgm.Pause();
+                audioSource_birthdaysong.Play();
+                is_played_birthdaysong = true;
+
+                overlay.gameObject.SetActive(true);
+                StartCoroutine(fade_in_overlay());
+            }
+
+            return;
+        }
         bool right = Input.GetKey(KeyCode.RightArrow);
         bool left = Input.GetKey(KeyCode.LeftArrow);
 
@@ -108,6 +138,7 @@ public class player : MonoBehaviour
         }
 
         scaleCoroutine = StartCoroutine(jump_scale_animation());
+        audioSource_jump.Play();
     }
 
     private IEnumerator jump_scale_animation()
@@ -169,12 +200,14 @@ public class player : MonoBehaviour
         if (collision.gameObject.CompareTag("headphone"))
         {
             headphone.SetActive(true);
+            audioSource_item.Play();
             Destroy(collision.gameObject);
         }
 
         if (collision.gameObject.CompareTag("cap"))
         {
             cap.SetActive(true);
+            audioSource_item.Play();
             Destroy(collision.gameObject);
         }
 
@@ -182,11 +215,44 @@ public class player : MonoBehaviour
         {
             respawn();
         }
+
+        
+    }
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        if (other.CompareTag("strawberry"))
+        {
+            score++;
+            score_text.text = score.ToString();
+            shine_effect.Play();
+        }
     }
 
     private void respawn()
     {
         float x = transform.position.x;
         transform.position = new Vector3(transform.position.x - 10, -1, transform.position.z);
+    }
+
+    private IEnumerator fade_in_overlay()
+    {
+        float duration = 3f;
+        float time = 0f;
+
+        Color color = overlay.color;
+        color.a = 0f;
+        overlay.color = color;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            color.a = Mathf.Lerp(0f, 0.8f, time / duration);
+            overlay.color = color;
+            yield return null;
+        }
+
+        color.a = 0.8f;
+        overlay.color = color;
+        birthday_card.SetActive(true);
     }
 }

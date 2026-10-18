@@ -8,6 +8,8 @@ TagManager:
   - headphone
   - cap
   - spike
+  - strawberry
+  - player
   layers:
   - Default
   - TransparentFX
