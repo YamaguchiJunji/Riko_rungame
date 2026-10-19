@@ -2,7 +2,6 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public class player : MonoBehaviour
 {
@@ -54,6 +53,7 @@ public class player : MonoBehaviour
         cap.SetActive(false);
         score_text.text = score.ToString();
         birthday_card.SetActive(false);
+        game_start_text.SetActive(true);
     }
 
     void Update()
@@ -158,22 +158,12 @@ public class player : MonoBehaviour
 
             if (touch.phase == TouchPhase.Began)
             {
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-                {
-                    return false;
-                }
-
                 return true;
             }
         }
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            {
-                return false;
-            }
-
             return true;
         }
 
